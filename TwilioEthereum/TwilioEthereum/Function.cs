@@ -6,6 +6,7 @@ using Amazon;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.SQS;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Twilio;
 using Twilio.Rest.Api.V2010.Account;
@@ -66,7 +67,8 @@ namespace TwilioEthereum
             string from;
             string body;
 
-            if (Environment.GetEnvironmentVariable("awsButtonId") == json["serialNumber"].Value<string>())
+            var buttonJson = JsonConvert.DeserializeObject<AwsButtonJson>(json.ToString());
+            if (Environment.GetEnvironmentVariable("awsButtonId") == buttonJson.SerialNumber)
             {
                 from = Environment.GetEnvironmentVariable("phoneNumberCellPhone");
                 body = "confirm";
@@ -93,20 +95,28 @@ namespace TwilioEthereum
             }
             
             var relay = new Relay(
-                new ConsoleLogging(),
-                Environment.GetEnvironmentVariable("etherscanApiKey"),
-                queueClient,
-                queueUrl);
+                new ConsoleLogging(), Environment.GetEnvironmentVariable("ethereumProvider"),
+                queueClient, queueUrl);
 
-            string reply = body.Equals("confirm", StringComparison.OrdinalIgnoreCase)
-                ? relay.ConfirmMessages()
-                : "unknown command " + body;
+            string response;
+            if (body.StartsWith("0x"))
+            {
+                var result = queueClient.SendMessageAsync(queueUrl, body.Trim()).Result;
+                response = $"Inserted transaction signed transaction hex into queue. Queue message md5 hash {result.MD5OfMessageBody}.";
+            }
+            else if (body.Equals("confirm", StringComparison.OrdinalIgnoreCase))
+            {
+                response = relay.ConfirmMessages();
+            }
+            else
+            {
+                response = "unknown command " + body;
+            }
 
             MessageResource.Create(
                 to: from,
                 from: Environment.GetEnvironmentVariable("phoneNumberTwilioPurchasedSouthSanDiego"),
-                body: reply);
-
+                body: response);
             
             return Responses.EmptyResponse;
         }

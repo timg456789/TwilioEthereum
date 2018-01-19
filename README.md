@@ -5,3 +5,5 @@ Broadcast signed ethereum transactions from a queue. You have 14 days to broadca
 ## Troubleshooting
 
 - Use the AWS BTN Dev app to configure the AWS IoT Button automatically in AWS
+
+https://github.com/ethereum/wiki/wiki/JSON-RPC

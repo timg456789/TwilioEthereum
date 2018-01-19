@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Amazon.SQS;
 using Amazon.SQS.Model;
@@ -10,22 +8,20 @@ namespace TwilioEthereum
     public class Relay
     {
         private readonly ILogging logging;
-        private readonly string etherscanApiKey;
+        private readonly string provider;
         private readonly IAmazonSQS queueClient;
         private readonly string queueUrl;
-        private readonly HttpClient client;
         
         public Relay(
             ILogging logging,
-            string etherscanApiKey,
+            string provider,
             IAmazonSQS queueClient,
             string queuUrl)
         {
             this.logging = logging;
-            this.etherscanApiKey = etherscanApiKey;
+            this.provider = provider;
             this.queueClient = queueClient;
             this.queueUrl = queuUrl;
-            this.client = new HttpClient();
         }
 
         public string ConfirmMessages()
@@ -37,12 +33,13 @@ namespace TwilioEthereum
             {
                 return "No pending transactions.";
             }
-
+            
+            var client = new EtherRpcClient(provider);
             var responses = (from m in messageBatch.Messages
                 select new
                 {
                     Message = m,
-                    Response = RelayMessage(m.Body)
+                    Response = client.Broadcast(m.Body)
                 }).ToList();
             Task.WaitAll(responses.Select(x => x.Response).ToArray());
             
@@ -57,14 +54,16 @@ namespace TwilioEthereum
                 logging.Log($"Responses: {failed.Select(x => x.Response.Result.StatusCode + " - " + x.Response.Result.Content.ReadAsStringAsync())}");
             }
 
-            var deleteItems = responses
-                .Where(x => x.Response.Result.IsSuccessStatusCode)
-                .Select(x => new DeleteMessageBatchRequestEntry(x.Message.MessageId, x.Message.ReceiptHandle))
-                .ToList();
-            var deleteRequest = new DeleteMessageBatchRequest(queueUrl, deleteItems);
-            if (deleteItems.Any())
+            var success = responses.Where(x => x.Response.Result.IsSuccessStatusCode).ToList();
+            if (success.Any())
             {
-                response += $"Sent {deleteItems.Count} transactions.";
+                var deleteItems = success
+                    .Select(x => new DeleteMessageBatchRequestEntry(x.Message.MessageId, x.Message.ReceiptHandle))
+                    .ToList();
+                var deleteRequest = new DeleteMessageBatchRequest(queueUrl, deleteItems);
+                var successResponses = success.Select(x => x.Response.Result.Content.ReadAsStringAsync().Result);
+                var successResponseText = string.Join(", ", successResponses);
+                response += $"Broadcast {deleteItems.Count} transactions to {provider} {successResponseText}";
                 var deleteResult = queueClient.DeleteMessageBatchAsync(deleteRequest).Result;
                 if (deleteResult.Failed.Any())
                 {
@@ -75,16 +74,6 @@ namespace TwilioEthereum
             }
 
             return response;
-        }
-        
-        protected virtual Task<HttpResponseMessage> RelayMessage(string transactionHex)
-        {
-            var url = $"https://api.etherscan.io/api?module=proxy&action=eth_sendRawTransaction&apikey={etherscanApiKey}";
-            var request = new HttpRequestMessage(HttpMethod.Post, url);
-            var requestParams = new List<KeyValuePair<string, string>>();
-            requestParams.Add(new KeyValuePair<string, string>("hex", transactionHex));
-            request.Content = new FormUrlEncodedContent(requestParams);
-            return client.SendAsync(request);
         }
 
     }

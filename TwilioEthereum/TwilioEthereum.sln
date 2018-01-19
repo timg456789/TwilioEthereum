@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwilioEthereum", "TwilioEthereum\TwilioEthereum.csproj", "{BCD2CED5-9905-4E84-9956-6F224C390E41}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwilioEthereumTests", "TwilioEthereumTests\TwilioEthereumTests.csproj", "{C71F9430-5DBA-4FD0-8FF4-A286D0F0F2D1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{BCD2CED5-9905-4E84-9956-6F224C390E41}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BCD2CED5-9905-4E84-9956-6F224C390E41}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BCD2CED5-9905-4E84-9956-6F224C390E41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C71F9430-5DBA-4FD0-8FF4-A286D0F0F2D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C71F9430-5DBA-4FD0-8FF4-A286D0F0F2D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C71F9430-5DBA-4FD0-8FF4-A286D0F0F2D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C71F9430-5DBA-4FD0-8FF4-A286D0F0F2D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
