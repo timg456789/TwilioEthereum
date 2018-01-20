@@ -31,7 +31,7 @@ namespace TwilioEthereum
             ReceiveMessageResponse messageBatch = queueClient.ReceiveMessageAsync(queueUrl).Result;
             if (!messageBatch.Messages.Any())
             {
-                return "No pending transactions.";
+                return "No unsent transactions.";
             }
             
             var client = new EtherRpcClient(provider);

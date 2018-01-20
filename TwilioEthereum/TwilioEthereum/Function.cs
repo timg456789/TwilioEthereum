@@ -71,7 +71,15 @@ namespace TwilioEthereum
             if (Environment.GetEnvironmentVariable("awsButtonId") == buttonJson.SerialNumber)
             {
                 from = Environment.GetEnvironmentVariable("phoneNumberCellPhone");
-                body = "confirm";
+
+                if (buttonJson.ClickType.Equals(AwsButtonJson.CLICK_TYPE_LONG))
+                {
+                    body = "purge";
+                }
+                else
+                {
+                    body = "confirm";
+                }
             }
             else
             {
@@ -102,16 +110,28 @@ namespace TwilioEthereum
             if (body.StartsWith("0x"))
             {
                 var result = queueClient.SendMessageAsync(queueUrl, body.Trim()).Result;
-                response = $"Inserted transaction signed transaction hex into queue. Queue message md5 hash {result.MD5OfMessageBody}.";
+                response = $"Inserted signed transaction hex into queue. Queue message md5 hash {result.MD5OfMessageBody}.";
             }
             else if (body.Equals("confirm", StringComparison.OrdinalIgnoreCase))
             {
                 response = relay.ConfirmMessages();
             }
+            else if (body.Equals("count", StringComparison.OrdinalIgnoreCase))
+            {
+                var messageCount = queueClient.GetQueueAttributesAsync(queueUrl, new List<string> {"ApproximateNumberOfMessages"}).Result;
+                response = $"{messageCount.ApproximateNumberOfMessages} unsent transactions.";
+            }
+            else if (body.Equals("purge", StringComparison.OrdinalIgnoreCase))
+            {
+                var purgeResponse = queueClient.PurgeQueueAsync(queueUrl).Result;
+                response = $"{purgeResponse.HttpStatusCode} - purged unsent transactions.";
+            }
             else
             {
                 response = "unknown command " + body;
             }
+
+            Console.WriteLine($"SENDING TO {from}: {response}");
 
             MessageResource.Create(
                 to: from,
