@@ -65,18 +65,22 @@ namespace TwilioEthereum
         {
             Console.WriteLine("Incoming request: " + json);
             string from;
-            string body;
+            string body = string.Empty;
 
             var buttonJson = JsonConvert.DeserializeObject<AwsButtonJson>(json.ToString());
             if (Environment.GetEnvironmentVariable("awsButtonId") == buttonJson.SerialNumber)
             {
                 from = Environment.GetEnvironmentVariable("phoneNumberCellPhone");
 
-                if (buttonJson.ClickType.Equals(AwsButtonJson.CLICK_TYPE_LONG))
+                if (buttonJson.ClickType.Equals(AwsButtonJson.CLICK_TYPE_LONG, StringComparison.OrdinalIgnoreCase))
                 {
                     body = "purge";
                 }
-                else
+                else if (buttonJson.ClickType.Equals(AwsButtonJson.CLICK_TYPE_DOUBLE, StringComparison.OrdinalIgnoreCase))
+                {
+                    body = "count";
+                }
+                else if (buttonJson.ClickType.Equals(AwsButtonJson.CLICK_TYPE_SINGLE, StringComparison.OrdinalIgnoreCase))
                 {
                     body = "confirm";
                 }

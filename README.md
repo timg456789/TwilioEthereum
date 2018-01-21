@@ -15,17 +15,17 @@ Receive
 
 ## Execute Queued Transaction
 
-Send
+Send `CONFIRM` by SMS or perform a single click on the AWS IoT button.
 
     CONFIRM
 
-Receive
+Receive by SMS
 
     Broadcast [BATCH_COUNT] transactions to [ETHEREUM_NET] { jsonrpc: "2.0", id: 0, result: "[ETHEREUM_TRANSACTION_HEX]" }
 
 ## Check Number of Queued Transactions
 
-Send
+Send `COUNT` by SMS or perform a double click on the AWS IoT button.
 
     COUNT
 
@@ -35,11 +35,9 @@ Receive
 
 ## Clear Queued Transactions
 
-Send
+Send `PURGE` by SMS or perform a long click on the AWS IoT button.
 
-    PURGE
-
-Receive
+Receive by SMS
 
     OK - purged unsent transactions.
 
